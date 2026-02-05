@@ -42,7 +42,7 @@ REAL_HONEYPOTS = [
 st.sidebar.header("⚙️ Configurações")
 time_input = st.sidebar.selectbox("📅 Período:", 
     ["Última Hora", "Últimas 6 Horas", "Últimas 24 Horas", "Últimos 7 Dias", "Últimos 30 Dias", "Tudo"])
-
+    
 time_map = {
     "Última Hora": "now-1h",
     "Últimas 6 Horas": "now-6h",
@@ -52,6 +52,7 @@ time_map = {
     "Tudo": "all"
 }
 time_range = time_map[time_input]
+index=2
 
 show_details = st.sidebar.checkbox("🔍 Mostrar Detalhes Avançados", value=True)
 auto_refresh = st.sidebar.checkbox("🔄 Auto-refresh (30s)", value=False)
