@@ -239,9 +239,9 @@ def get_comprehensive_attack_data(time_range_val):
 
 
 def get_detailed_attacks(time_range_val, limit=500):
-    """
-    Busca detalhada dos últimos ataques com TODOS os campos
-    """
+    
+    # Busca detalhada dos últimos ataques com TODOS os campos
+    
     query = {
         "size": limit,
         "track_total_hits": True,
@@ -271,7 +271,7 @@ def get_detailed_attacks(time_range_val, limit=500):
 
 
 # ------------------------------------------------------
-# 5. DASHBOARD ULTRA-COMPLETO
+# 5. DASHBOARD COMPLETO
 # ------------------------------------------------------
 st.title("🛡️ Sentinel Dashboard - Análise Completa de Ameaças")
 st.caption(f"📊 **Período:** {time_input} | 🕐 **Última Atualização:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -345,7 +345,7 @@ if geo_points:
     if map_data:
         map_df = pd.DataFrame(map_data)
         
-        # Criar mapa de bolhas interativo - TEMA CYBERPUNK
+        # Criar mapa de bolhas interativo
         fig_map = px.scatter_geo(
             map_df,
             lat='lat',
@@ -435,7 +435,7 @@ if geo_points:
         
         st.plotly_chart(fig_map, use_container_width=True, config={'displayModeBar': False})
         
-        # Estatísticas do mapa - ESTILO CYBERPUNK
+        # Estatísticas do mapa
         map_stat_col1, map_stat_col2, map_stat_col3, map_stat_col4 = st.columns(4)
         
         top_country = map_df.nlargest(1, 'ataques').iloc[0]
@@ -473,7 +473,7 @@ elif detailed_data and detailed_data.get('hits', {}).get('hits'):
         # Agregar por país para criar bolhas
         country_attacks = geo_df.groupby(['country', 'lat', 'lon']).size().reset_index(name='ataques')
         
-        # Criar mapa - TEMA CYBERPUNK
+        # Criar mapa
         fig_map = px.scatter_geo(
             country_attacks,
             lat='lat',
@@ -672,7 +672,7 @@ with target_col3:
 st.divider()
 
 # ======================================================
-# SEÇÃO 5: COMANDOS E PAYLOADS (PRINCIPAL!)
+# SEÇÃO 5: COMANDOS E PAYLOADS
 # ======================================================
 st.header("💻 Análise de Comandos e Payloads")
 
