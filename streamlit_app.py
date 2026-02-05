@@ -74,9 +74,9 @@ if auto_refresh:
 # 4. FUNÇÕES DE BUSCA COMPLETAS
 # ------------------------------------------------------
 def get_comprehensive_attack_data(time_range_val):
-    """
-    Busca TODAS as agregações possíveis para análise completa
-    """
+    
+    # Busca todas as agregações possíveis para análise completa
+    
     query = {
         "from": 0,
         "size": 0,  # Apenas agregações
