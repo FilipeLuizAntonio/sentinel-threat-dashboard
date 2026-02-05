@@ -879,7 +879,24 @@ st.divider()
 # ======================================================
 # FOOTER COM ESTATÍSTICAS EXTRAS
 # ======================================================
-st.caption("🛡️ **Sentinel Dashboard** | Desenvolvido com T-Pot e Streamlit")
+col_footer_1, col_footer_2 = st.columns([3, 1])
+with col_footer_1:
+    st.caption("🛡️ **Sentinel Dashboard** | Monitorando ataques globais em tempo real.")
+    st.caption("Arquitetura: T-Pot Multi Honeypot → Elastic Stack → Ngrok → Streamlit")
+
+with col_footer_2:
+    st.markdown(
+        """
+        <div style="text-align: right;">
+            <a href="https://www.linkedin.com/in/khimira/" target="_blank" style="text-decoration: none;">
+                <button style="background-color:#0077b5; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;">
+                    Conectar no LinkedIn 🔗
+                </button>
+            </a>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 with st.expander("📊 Estatísticas Adicionais"):
     stat_col1, stat_col2, stat_col3 = st.columns(3)
