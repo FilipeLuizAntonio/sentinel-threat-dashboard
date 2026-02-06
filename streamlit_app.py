@@ -137,7 +137,7 @@ def get_comprehensive_attack_data(time_range_val):
             
             # === COMANDOS E PAYLOADS ===
             "top_commands": {
-                "terms": {"field": "commands.keyword", "size": 30}
+                "terms": {"field": "input.keyword", "size": 30}
             },
             "top_usernames": {
                 "terms": {"field": "username.keyword", "size": 20}
