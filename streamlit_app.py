@@ -61,7 +61,7 @@ if st.sidebar.button('🔄 Atualizar Agora', type="primary"):
 
 st.sidebar.divider()
 st.sidebar.subheader("📊 Sobre os Dados")
-st.sidebar.info("Este dashboard analisa apenas ataques reais capturados por honeypots, ignorando ruído de rede e logs do P0f/Suricata.")
+st.sidebar.info("Este dashboard analisa apenas ataques reais capturados por honeypots, ignorando ruído de rede e logs do P0f/Suricata e da Oracle.")
 
 # Auto-refresh
 if auto_refresh:
@@ -385,6 +385,7 @@ if total_attacks == 0:
 header_col1, header_col2 = st.columns([1, 4])
 with header_col2:
     st.title("🛡️Sentinel Dashboard - Honeypot Monitor")
+    st.info("💡 **Dados filtrados:** Removidos ruídos de infraestrutura (Porta 60973) para foco em ataques orgânicos reais.")
     st.caption(f"📅 Período: **{time_input}** | 🔄 Última Atualização: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
 
 st.divider()
