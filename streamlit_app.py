@@ -85,6 +85,37 @@ def get_comprehensive_attack_data(time_range_val):
             "bool": {
                 "must": [
                     {"terms": {"type.keyword": REAL_HONEYPOTS}}
+                ],
+                "must_not": [
+                    # Filtro para remover porta 60973
+                    {"term": {"dest_port": 60973}},
+                    # Filtro para remover Oracle Corporation
+                    {"term": {"geoip.as_org.keyword": "Oracle Corporation"}},
+                    # Filtros para remover IPs locais/privados
+                    {"wildcard": {"src_ip.keyword": "10.*"}},
+                    {"wildcard": {"src_ip.keyword": "192.168.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.16.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.17.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.18.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.19.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.20.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.21.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.22.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.23.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.24.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.25.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.26.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.27.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.28.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.29.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.30.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.31.*"}},
+                    {"wildcard": {"src_ip.keyword": "127.*"}},
+                    {"wildcard": {"src_ip.keyword": "169.254.*"}},
+                    {"wildcard": {"src_ip.keyword": "fc00:*"}},
+                    {"wildcard": {"src_ip.keyword": "fd00:*"}},
+                    {"wildcard": {"src_ip.keyword": "fe80:*"}},
+                    {"term": {"src_ip.keyword": "::1"}}
                 ]
             }
         },
@@ -226,466 +257,427 @@ def get_comprehensive_attack_data(time_range_val):
     
     if time_range_val != "all":
         query["query"]["bool"]["filter"] = [
-            {"range": {"@timestamp": {"gte": time_range_val, "lte": "now"}}}
+            {
+                "range": {
+                    "@timestamp": {
+                        "gte": time_range_val,
+                        "lte": "now"
+                    }
+                }
+            }
         ]
-
+    
     try:
-        r = requests.get(ES_URL, json=query, auth=HTTPBasicAuth(TPOT_USER, TPOT_PASSWORD), 
-                        verify=False, timeout=30)
-        return r.json() if r.status_code == 200 else None
+        response = requests.post(
+            ES_URL,
+            auth=HTTPBasicAuth(TPOT_USER, TPOT_PASSWORD),
+            headers={"Content-Type": "application/json"},
+            json=query,
+            verify=False,
+            timeout=30
+        )
+        response.raise_for_status()
+        return response.json()
     except Exception as e:
-        st.error(f"Erro ao buscar dados agregados: {e}")
+        st.error(f"❌ Erro ao buscar dados agregados: {e}")
         return None
 
-
-def get_detailed_attacks(time_range_val, limit=500):
+def get_detailed_attack_logs(time_range_val, max_size=500):
     
-    # Busca detalhada dos últimos ataques com TODOS os campos
+    # Busca os últimos N registros detalhados para análise granular
     
     query = {
-        "size": limit,
+        "from": 0,
+        "size": max_size,
         "track_total_hits": True,
-        "sort": [{"@timestamp": {"order": "desc"}}],
-        "_source": ["*"],  # Todos os campos
         "query": {
             "bool": {
                 "must": [
                     {"terms": {"type.keyword": REAL_HONEYPOTS}}
+                ],
+                "must_not": [
+                    # Filtro para remover porta 60973
+                    {"term": {"dest_port": 60973}},
+                    # Filtro para remover Oracle Corporation
+                    {"term": {"geoip.as_org.keyword": "Oracle Corporation"}},
+                    # Filtros para remover IPs locais/privados
+                    {"wildcard": {"src_ip.keyword": "10.*"}},
+                    {"wildcard": {"src_ip.keyword": "192.168.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.16.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.17.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.18.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.19.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.20.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.21.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.22.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.23.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.24.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.25.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.26.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.27.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.28.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.29.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.30.*"}},
+                    {"wildcard": {"src_ip.keyword": "172.31.*"}},
+                    {"wildcard": {"src_ip.keyword": "127.*"}},
+                    {"wildcard": {"src_ip.keyword": "169.254.*"}},
+                    {"wildcard": {"src_ip.keyword": "fc00:*"}},
+                    {"wildcard": {"src_ip.keyword": "fd00:*"}},
+                    {"wildcard": {"src_ip.keyword": "fe80:*"}},
+                    {"term": {"src_ip.keyword": "::1"}}
                 ]
             }
-        }
+        },
+        "sort": [
+            {"@timestamp": {"order": "desc"}}
+        ]
     }
     
     if time_range_val != "all":
         query["query"]["bool"]["filter"] = [
-            {"range": {"@timestamp": {"gte": time_range_val, "lte": "now"}}}
+            {
+                "range": {
+                    "@timestamp": {
+                        "gte": time_range_val,
+                        "lte": "now"
+                    }
+                }
+            }
         ]
-
+    
     try:
-        r = requests.get(ES_URL, json=query, auth=HTTPBasicAuth(TPOT_USER, TPOT_PASSWORD), 
-                        verify=False, timeout=30)
-        return r.json() if r.status_code == 200 else None
+        response = requests.post(
+            ES_URL,
+            auth=HTTPBasicAuth(TPOT_USER, TPOT_PASSWORD),
+            headers={"Content-Type": "application/json"},
+            json=query,
+            verify=False,
+            timeout=30
+        )
+        response.raise_for_status()
+        return response.json()
     except Exception as e:
-        st.error(f"Erro ao buscar ataques detalhados: {e}")
+        st.error(f"❌ Erro ao buscar logs detalhados: {e}")
         return None
 
-
 # ------------------------------------------------------
-# 5. DASHBOARD COMPLETO
+# 5. BUSCAR DADOS
 # ------------------------------------------------------
-st.title("🛡️ Sentinel Dashboard - Análise Completa de Ameaças")
-st.caption(f"📊 **Período:** {time_input} | 🕐 **Última Atualização:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-# Buscar dados
-with st.spinner("🔄 Carregando dados..."):
+with st.spinner("🔍 Carregando dados do Elasticsearch..."):
     data = get_comprehensive_attack_data(time_range)
-    detailed_data = get_detailed_attacks(time_range, limit=500)
+    detailed_data = get_detailed_attack_logs(time_range) if show_details else None
 
-if not data or 'aggregations' not in data:
-    st.error("❌ Erro ao carregar dados. Verifique a conexão com T-Pot.")
+if not data:
+    st.error("❌ Falha ao conectar com o Elasticsearch. Verifique as credenciais e a URL.")
     st.stop()
 
-agg = data['aggregations']
-total_attacks = data['hits']['total']['value']
-unique_ips = agg['unique_attackers']['value']
-unique_countries = agg['unique_countries']['value']
-unique_ports = agg['unique_ports']['value']
+# Extrair dados
+total_attacks = data.get('hits', {}).get('total', {}).get('value', 0)
+agg = data.get('aggregations', {})
+
+if total_attacks == 0:
+    st.warning("⚠️ Nenhum ataque detectado no período selecionado.")
+    st.stop()
+
+# ------------------------------------------------------
+# 6. HEADER COM LOGO E TÍTULO
+# ------------------------------------------------------
+header_col1, header_col2 = st.columns([1, 4])
+with header_col1:
+    st.markdown("# 🛡️")
+with header_col2:
+    st.title("Sentinel Dashboard - Honeypot Monitor")
+    st.caption(f"📅 Período: **{time_input}** | 🔄 Última Atualização: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+
+st.divider()
 
 # ======================================================
 # SEÇÃO 1: MÉTRICAS PRINCIPAIS
 # ======================================================
 st.header("📊 Visão Geral")
 
-col1, col2, col3, col4, col5, col6 = st.columns(6)
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.metric("🎯 Total de Ataques", f"{total_attacks:,}")
+    st.metric(
+        label="🎯 Total de Ataques",
+        value=f"{total_attacks:,}",
+        delta="Apenas Honeypots Reais"
+    )
+
 with col2:
-    st.metric("😈 IPs Únicos", f"{unique_ips:,}")
+    unique_attackers = agg.get('unique_attackers', {}).get('value', 0)
+    st.metric(
+        label="😈 IPs Únicos",
+        value=f"{unique_attackers:,}",
+        delta=f"{(unique_attackers/total_attacks*100):.1f}% do total" if total_attacks > 0 else "0%"
+    )
+
 with col3:
-    avg_per_ip = total_attacks / unique_ips if unique_ips > 0 else 0
-    st.metric("📈 Média/IP", f"{avg_per_ip:.1f}")
+    unique_countries = agg.get('unique_countries', {}).get('value', 0)
+    st.metric(
+        label="🌍 Países Diferentes",
+        value=f"{unique_countries}",
+        delta="Alcance Global"
+    )
+
 with col4:
-    st.metric("🌍 Países", f"{unique_countries:,}")
-with col5:
-    st.metric("🔌 Portas", f"{unique_ports:,}")
-with col6:
-    honeypots_active = len(agg['top_honeypots']['buckets'])
-    st.metric("🍯 Honeypots", honeypots_active)
+    unique_ports = agg.get('unique_ports', {}).get('value', 0)
+    st.metric(
+        label="🔌 Portas Atacadas",
+        value=f"{unique_ports}",
+        delta="Vetores de Ataque"
+    )
 
 st.divider()
 
 # ======================================================
-# SEÇÃO 2: ANÁLISE GEOGRÁFICA
+# SEÇÃO 2: HONEYPOTS MAIS ATACADOS
 # ======================================================
-st.header("🌍 Análise Geográfica")
+st.header("🍯 Honeypots Mais Atacados")
 
-# MAPA MUNDI DE BOLHAS - TEMA CYBERPUNK
-st.subheader("🗺️ Mapa Mundial de Ataques")
-
-# Opção 1: Usar agregação geo_centroid (mais eficiente)
-geo_points = agg.get('geo_points', {}).get('buckets', [])
-
-if geo_points:
-    map_data = []
-    for bucket in geo_points:
-        country = bucket['key']
-        count = bucket['doc_count']
-        centroid = bucket.get('centroid', {}).get('location')
-        
-        if centroid:
-            map_data.append({
-                'country': country,
-                'lat': centroid['lat'],
-                'lon': centroid['lon'],
-                'ataques': count,
-                'percentual': f"{(count/total_attacks*100):.2f}%"
-            })
+honeypots = agg.get('top_honeypots', {}).get('buckets', [])
+if honeypots:
+    hp_df = pd.DataFrame([
+        {'Honeypot': b['key'], 'Ataques': b['doc_count'], 'Percentual': f"{(b['doc_count']/total_attacks*100):.2f}%"} 
+        for b in honeypots
+    ])
     
-    if map_data:
-        map_df = pd.DataFrame(map_data)
-        
-        # Criar mapa de bolhas interativo
-        fig_map = px.scatter_geo(
-            map_df,
-            lat='lat',
-            lon='lon',
-            size='ataques',
-            hover_name='country',
-            hover_data={
-                'ataques': ':,',
-                'percentual': True,
-                'lat': False,
-                'lon': False
-            },
-            color='ataques',
-            color_continuous_scale=[
-                [0, '#0a0e27'],      # Azul escuro profundo
-                [0.2, '#1a1d3f'],    # Roxo escuro
-                [0.3, '#2d1b4e'],    # Roxo médio
-                [0.4, '#8b00ff'],    # Roxo neon
-                [0.5, '#9d00ff'],    # Roxo brilhante
-                [0.6, '#ff00ff'],    # Magenta neon
-                [0.7, '#ff0080'],    # Rosa neon
-                [0.85, '#ff0040'],   # Vermelho neon
-                [1, '#ff0000']       # Vermelho intenso
-            ],
-            size_max=70,
-            projection='natural earth',
-            title=f'<b>🌍 MAPA GLOBAL DE ATAQUES CIBERNÉTICOS</b><br><sub>{total_attacks:,} ataques detectados | {unique_countries} países</sub>'
-        )
-        
-        fig_map.update_layout(
-            height=650,
-            font=dict(
-                family="Courier New, monospace",
-                color="#00ff41",  # Verde matrix
-                size=12
-            ),
-            title_font=dict(
-                size=18,
-                color="#00ffff"  # Ciano neon
-            ),
-            geo=dict(
-                showframe=True,
-                framecolor='#00ffff',  # Borda ciano neon
-                framewidth=2,
-                showcoastlines=True,
-                coastlinecolor='#0066ff',  # Azul neon
-                coastlinewidth=1,
-                projection_type='natural earth',
-                bgcolor='#0a0e27',  # Fundo azul escuro profundo
-                showland=True,
-                landcolor='#0d1117',  # Continentes preto azulado
-                showlakes=True,
-                lakecolor='#050811',  # Lagos quase pretos
-                showcountries=True,
-                countrycolor='#1a3a52',  # Bordas dos países azul escuro
-                countrywidth=0.5,
-                showocean=True,
-                oceancolor='#0a0e27'  # Oceanos azul escuro profundo
-            ),
-            margin=dict(l=0, r=0, t=80, b=0),
-            paper_bgcolor='#0d1117',  # Fundo geral escuro
-            plot_bgcolor='#0d1117',
-            coloraxis_colorbar=dict(
-                title=dict(
-                    text="<b>Ataques</b>",
-                    font=dict(color="#00ffff")
-                ),
-                tickfont=dict(color="#00ff41"),
-                bgcolor='rgba(13, 17, 23, 0.8)',
-                bordercolor='#00ffff',
-                borderwidth=2,
-                outlinecolor='#00ffff',
-                outlinewidth=1
-            )
-        )
-        
-        # Adicionar efeito de brilho nas bolhas
-        fig_map.update_traces(
-            marker=dict(
-                line=dict(
-                    width=2,
-                    color='#00ffff'  # Borda ciano nas bolhas
-                ),
-                opacity=0.85
-            )
-        )
-        
-        st.plotly_chart(fig_map, use_container_width=True, config={'displayModeBar': False})
-        
-        # Estatísticas do mapa
-        map_stat_col1, map_stat_col2, map_stat_col3, map_stat_col4 = st.columns(4)
-        
-        top_country = map_df.nlargest(1, 'ataques').iloc[0]
-        
-        with map_stat_col1:
-            st.metric("📍 Países no Mapa", len(map_df))
-        with map_stat_col2:
-            st.metric("🎯 País Com Mais Ataques", top_country['country'])
-        with map_stat_col3:
-            st.metric("🔥 Ataques", f"{top_country['ataques']:,}")
-        with map_stat_col4:
-            st.metric("📊 Percentual", top_country['percentual'])
-
-# Opção 2: Fallback usando dados detalhados (se geo_points não disponível)
-elif detailed_data and detailed_data.get('hits', {}).get('hits'):
-    geo_data = []
-    hits = detailed_data['hits']['hits']
+    col_hp1, col_hp2 = st.columns([2, 1])
     
-    for hit in hits:
-        src = hit['_source']
-        geoip = src.get('geoip', {})
-        
-        if geoip.get('location', {}).get('lat') and geoip.get('location', {}).get('lon'):
-            geo_data.append({
-                'lat': geoip['location']['lat'],
-                'lon': geoip['location']['lon'],
-                'country': geoip.get('country_name', 'Desconhecido'),
-                'city': geoip.get('city_name', 'N/A'),
-                'ip': src.get('src_ip', 'N/A')
-            })
+    with col_hp1:
+        fig_hp = px.bar(
+            hp_df, 
+            x='Ataques', 
+            y='Honeypot', 
+            orientation='h',
+            title="Distribuição de Ataques por Honeypot",
+            color='Ataques',
+            color_continuous_scale='Reds',
+            text='Percentual'
+        )
+        fig_hp.update_layout(height=500, showlegend=False)
+        st.plotly_chart(fig_hp, use_container_width=True)
     
-    if geo_data:
-        geo_df = pd.DataFrame(geo_data)
-        
-        # Agregar por país para criar bolhas
-        country_attacks = geo_df.groupby(['country', 'lat', 'lon']).size().reset_index(name='ataques')
-        
-        # Criar mapa
-        fig_map = px.scatter_geo(
-            country_attacks,
-            lat='lat',
-            lon='lon',
-            size='ataques',
-            hover_name='country',
-            hover_data={'ataques': ':,', 'lat': False, 'lon': False},
-            color='ataques',
-            color_continuous_scale=[
-                [0, '#0a0e27'],
-                [0.3, '#8b00ff'],
-                [0.6, '#ff00ff'],
-                [0.85, '#ff0040'],
-                [1, '#ff0000']
-            ],
-            size_max=70,
-            projection='natural earth',
-            title=f'<b>🌍 MAPA GLOBAL DE ATAQUES CIBERNÉTICOS</b><br><sub>{total_attacks:,} ataques detectados</sub>'
-        )
-        
-        fig_map.update_layout(
-            height=650,
-            font=dict(family="Courier New, monospace", color="#00ff41", size=12),
-            title_font=dict(size=18, color="#00ffff"),
-            geo=dict(
-                showframe=True,
-                framecolor='#00ffff',
-                framewidth=2,
-                showcoastlines=True,
-                coastlinecolor='#0066ff',
-                projection_type='natural earth',
-                bgcolor='#0a0e27',
-                showland=True,
-                landcolor='#0d1117',
-                showlakes=True,
-                lakecolor='#050811',
-                showcountries=True,
-                countrycolor='#1a3a52'
-            ),
-            paper_bgcolor='#0d1117',
-            plot_bgcolor='#0d1117',
-            coloraxis_colorbar=dict(
-                title=dict(
-                    text="<b>Ataques</b>",
-                    font=dict(color="#00ffff")
-                ),
-                tickfont=dict(color="#00ff41"),
-                bgcolor='rgba(13, 17, 23, 0.8)',
-                bordercolor='#00ffff',
-                borderwidth=2
-            )
-        )
-        
-        fig_map.update_traces(
-            marker=dict(
-                line=dict(width=2, color='#00ffff'),
-                opacity=0.85
-            )
-        )
-        
-        st.plotly_chart(fig_map, use_container_width=True, config={'displayModeBar': False})
-else:
-    st.warning("⚠️ Não há dados de geolocalização disponíveis para este período")
+    with col_hp2:
+        st.dataframe(hp_df, use_container_width=True, hide_index=True, height=500)
 
 st.divider()
 
-# GRÁFICOS DETALHADOS
-geo_col1, geo_col2, geo_col3 = st.columns(3)
+# ======================================================
+# SEÇÃO 3: ANÁLISE GEOGRÁFICA
+# ======================================================
+st.header("🌍 Origem Geográfica dos Ataques")
+
+geo_col1, geo_col2 = st.columns(2)
 
 with geo_col1:
-    st.subheader("Top 15 Países")
-    countries = agg['top_countries']['buckets']
+    st.subheader("🗺️ Top 20 Países")
+    countries = agg.get('top_countries', {}).get('buckets', [])
     if countries:
         country_df = pd.DataFrame([
-            {'País': b['key'], 'Ataques': b['doc_count'], 
-             'Percentual': f"{(b['doc_count']/total_attacks*100):.1f}%"} 
+            {
+                'País': b['key'], 
+                'Ataques': b['doc_count'],
+                'Percentual': f"{(b['doc_count']/total_attacks*100):.2f}%"
+            } 
             for b in countries
         ])
-        fig = px.bar(country_df, x='Ataques', y='País', orientation='h',
-                    color='Ataques', color_continuous_scale='Reds',
-                    text='Percentual')
-        fig.update_layout(height=500, showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
+        
+        fig_countries = px.bar(
+            country_df.head(10), 
+            x='Ataques', 
+            y='País', 
+            orientation='h',
+            title="Top 10 Países Atacantes",
+            color='Ataques',
+            color_continuous_scale='Reds',
+            text='Percentual'
+        )
+        fig_countries.update_layout(height=400, showlegend=False)
+        st.plotly_chart(fig_countries, use_container_width=True)
+        
+        st.dataframe(country_df, use_container_width=True, hide_index=True, height=300)
 
 with geo_col2:
-    st.subheader("Top 15 Cidades")
-    cities = agg['top_cities']['buckets']
+    st.subheader("🏙️ Top 15 Cidades")
+    cities = agg.get('top_cities', {}).get('buckets', [])
     if cities:
         city_df = pd.DataFrame([
             {'Cidade': b['key'], 'Ataques': b['doc_count']} 
             for b in cities
         ])
-        fig = px.bar(city_df, x='Ataques', y='Cidade', orientation='h',
-                    color='Ataques', color_continuous_scale='Oranges')
-        fig.update_layout(height=500, showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
+        st.dataframe(city_df, use_container_width=True, hide_index=True, height=700)
 
-with geo_col3:
-    st.subheader("Distribuição Continental")
-    continents = agg.get('top_continents', {}).get('buckets', [])
-    if continents:
-        continent_map = {
-            'AS': 'Ásia', 'EU': 'Europa', 'NA': 'América do Norte',
-            'SA': 'América do Sul', 'AF': 'África', 'OC': 'Oceania', 'AN': 'Antártica'
-        }
-        cont_df = pd.DataFrame([
-            {'Continente': continent_map.get(b['key'], b['key']), 'Ataques': b['doc_count']} 
-            for b in continents
-        ])
-        fig = px.pie(cont_df, names='Continente', values='Ataques', hole=0.4)
-        fig.update_layout(height=500)
-        st.plotly_chart(fig, use_container_width=True)
+# Mapa Mundial
+st.subheader("🗺️ Mapa Global de Ataques")
+geo_points = agg.get('geo_points', {}).get('buckets', [])
+if geo_points:
+    map_data = []
+    for bucket in geo_points:
+        country = bucket['key']
+        count = bucket['doc_count']
+        centroid = bucket.get('centroid', {}).get('location', {})
+        
+        if centroid and 'lat' in centroid and 'lon' in centroid:
+            map_data.append({
+                'País': country,
+                'Ataques': count,
+                'lat': centroid['lat'],
+                'lon': centroid['lon']
+            })
+    
+    if map_data:
+        map_df = pd.DataFrame(map_data)
+        
+        fig_map = px.scatter_geo(
+            map_df,
+            lat='lat',
+            lon='lon',
+            size='Ataques',
+            hover_name='País',
+            hover_data={'Ataques': True, 'lat': False, 'lon': False},
+            title="Distribuição Global de Ataques",
+            color='Ataques',
+            color_continuous_scale='Reds',
+            size_max=50
+        )
+        fig_map.update_layout(height=500)
+        st.plotly_chart(fig_map, use_container_width=True)
 
 st.divider()
 
 # ======================================================
-# SEÇÃO 3: ANÁLISE TEMPORAL
+# SEÇÃO 4: ANÁLISE TEMPORAL
 # ======================================================
 st.header("⏰ Análise Temporal")
 
-temp_col1, temp_col2 = st.columns([2, 1])
+time_col1, time_col2 = st.columns(2)
 
-with temp_col1:
-    st.subheader("Timeline de Ataques")
-    timeline = agg['attacks_over_time']['buckets']
-    if timeline:
-        timeline_df = pd.DataFrame([
+with time_col1:
+    st.subheader("📈 Ataques ao Longo do Tempo")
+    attacks_time = agg.get('attacks_over_time', {}).get('buckets', [])
+    if attacks_time:
+        time_df = pd.DataFrame([
             {
-                'Data/Hora': datetime.fromtimestamp(b['key']/1000),
+                'Data/Hora': datetime.fromisoformat(b['key_as_string'].replace('Z', '+00:00')),
                 'Ataques': b['doc_count']
             } 
-            for b in timeline
+            for b in attacks_time
         ])
-        fig = px.area(timeline_df, x='Data/Hora', y='Ataques',
-                     color_discrete_sequence=['#ff4b4b'])
-        fig.update_layout(height=350)
-        st.plotly_chart(fig, use_container_width=True)
+        
+        fig_time = px.line(
+            time_df, 
+            x='Data/Hora', 
+            y='Ataques',
+            title="Evolução Temporal dos Ataques",
+            markers=True
+        )
+        fig_time.update_traces(line_color='#dc143c')
+        st.plotly_chart(fig_time, use_container_width=True)
 
-with temp_col2:
-    st.subheader("Ataques por Hora do Dia")
-    by_hour = agg['attacks_by_hour']['buckets']
-    if by_hour:
-        hour_df = pd.DataFrame([
-            {'Hora': f"{int(b['key']):02d}:00", 'Ataques': b['doc_count']} 
-            for b in sorted(by_hour, key=lambda x: x['key'])
+with time_col2:
+    st.subheader("📅 Distribuição por Dia da Semana")
+    days_week = agg.get('attacks_by_day_of_week', {}).get('buckets', [])
+    if days_week:
+        day_names = {1: 'Segunda', 2: 'Terça', 3: 'Quarta', 4: 'Quinta', 5: 'Sexta', 6: 'Sábado', 7: 'Domingo'}
+        day_df = pd.DataFrame([
+            {
+                'Dia': day_names.get(b['key'], 'N/A'),
+                'Ataques': b['doc_count']
+            } 
+            for b in sorted(days_week, key=lambda x: x['key'])
         ])
-        fig = px.bar(hour_df, x='Hora', y='Ataques',
-                    color='Ataques', color_continuous_scale='Blues')
-        fig.update_layout(height=350, showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
+        
+        fig_days = px.bar(
+            day_df, 
+            x='Dia', 
+            y='Ataques',
+            title="Ataques por Dia da Semana",
+            color='Ataques',
+            color_continuous_scale='Reds'
+        )
+        st.plotly_chart(fig_days, use_container_width=True)
+    
+    st.subheader("🕐 Distribuição por Hora do Dia")
+    hours = agg.get('attacks_by_hour', {}).get('buckets', [])
+    if hours:
+        hour_df = pd.DataFrame([
+            {
+                'Hora': f"{b['key']:02d}:00",
+                'Ataques': b['doc_count']
+            } 
+            for b in sorted(hours, key=lambda x: x['key'])
+        ])
+        
+        fig_hours = px.bar(
+            hour_df, 
+            x='Hora', 
+            y='Ataques',
+            title="Ataques por Hora",
+            color='Ataques',
+            color_continuous_scale='Reds'
+        )
+        st.plotly_chart(fig_hours, use_container_width=True)
 
 st.divider()
 
 # ======================================================
-# SEÇÃO 4: HONEYPOTS E PORTAS
+# SEÇÃO 5: ANÁLISE DE PROTOCOLOS E PORTAS
 # ======================================================
-st.header("🎯 Alvos e Vetores de Ataque")
+st.header("🔌 Protocolos e Portas Atacadas")
 
-target_col1, target_col2, target_col3 = st.columns(3)
+proto_col1, proto_col2 = st.columns(2)
 
-with target_col1:
-    st.subheader("Honeypots Atacados")
-    honeypots = agg['top_honeypots']['buckets']
-    if honeypots:
-        hp_df = pd.DataFrame([
-            {'Honeypot': b['key'], 'Ataques': b['doc_count']} 
-            for b in honeypots
-        ])
-        fig = px.pie(hp_df, names='Honeypot', values='Ataques', hole=0.5)
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
-
-with target_col2:
-    st.subheader("Top 20 Portas")
-    ports = agg['top_ports']['buckets']
-    if ports:
-        port_df = pd.DataFrame([
-            {'Porta': str(b['key']), 'Ataques': b['doc_count']} 
-            for b in ports
-        ])
-        st.dataframe(port_df, use_container_width=True, hide_index=True, height=400)
-
-with target_col3:
-    st.subheader("Protocolos Usados")
+with proto_col1:
+    st.subheader("⚙️ Protocolos Mais Atacados")
     protocols = agg.get('top_protocols', {}).get('buckets', [])
     if protocols:
         proto_df = pd.DataFrame([
             {'Protocolo': b['key'], 'Ataques': b['doc_count']} 
             for b in protocols
         ])
-        fig = px.bar(proto_df, x='Protocolo', y='Ataques',
-                    color='Ataques', color_continuous_scale='Greens')
-        fig.update_layout(height=400, showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
+        
+        fig_proto = px.pie(
+            proto_df, 
+            values='Ataques', 
+            names='Protocolo',
+            title="Distribuição por Protocolo",
+            color_discrete_sequence=px.colors.sequential.Reds_r
+        )
+        st.plotly_chart(fig_proto, use_container_width=True)
+
+with proto_col2:
+    st.subheader("🔌 Top 20 Portas Atacadas")
+    ports = agg.get('top_ports', {}).get('buckets', [])
+    if ports:
+        port_df = pd.DataFrame([
+            {
+                'Porta': b['key'], 
+                'Ataques': b['doc_count'],
+                'Percentual': f"{(b['doc_count']/total_attacks*100):.2f}%"
+            } 
+            for b in ports
+        ])
+        st.dataframe(port_df, use_container_width=True, hide_index=True, height=400)
 
 st.divider()
 
 # ======================================================
-# SEÇÃO 5: COMANDOS E PAYLOADS
+# SEÇÃO 6: COMANDOS E PAYLOADS
 # ======================================================
-st.header("💻 Análise de Comandos e Payloads")
+st.header("💻 Comandos e Payloads Capturados")
 
-cmd_col1, cmd_col2 = st.columns(2)
+cmd_col1, cmd_col2 = st.columns([3, 2])
 
 with cmd_col1:
-    st.subheader("🔥 Top 30 Comandos Mais Usados")
+    st.subheader("⌨️ Top 30 Comandos Executados")
     commands = agg.get('top_commands', {}).get('buckets', [])
     if commands:
         cmd_df = pd.DataFrame([
             {
                 'Comando': b['key'][:100], 
-                'Ocorrências': b['doc_count'],
+                'Execuções': b['doc_count'],
                 'Percentual': f"{(b['doc_count']/total_attacks*100):.2f}%"
             } 
             for b in commands if b['key']
@@ -718,7 +710,7 @@ with cmd_col2:
 st.divider()
 
 # ======================================================
-# SEÇÃO 6: CREDENCIAIS CAPTURADAS
+# SEÇÃO 7: CREDENCIAIS CAPTURADAS
 # ======================================================
 st.header("🔐 Credenciais Capturadas")
 
@@ -751,7 +743,7 @@ with cred_col2:
 st.divider()
 
 # ======================================================
-# SEÇÃO 7: MALWARE E ARQUIVOS
+# SEÇÃO 8: MALWARE E ARQUIVOS
 # ======================================================
 st.header("🦠 Malware e Arquivos")
 
@@ -784,7 +776,7 @@ with malware_col2:
 st.divider()
 
 # ======================================================
-# SEÇÃO 8: TOP ATACANTES
+# SEÇÃO 9: TOP ATACANTES
 # ======================================================
 st.header("😈 Top Atacantes e Provedores")
 
@@ -817,7 +809,7 @@ with attacker_col2:
 st.divider()
 
 # ======================================================
-# SEÇÃO 9: DETALHES COMPLETOS DOS ATAQUES
+# SEÇÃO 10: DETALHES COMPLETOS DOS ATAQUES
 # ======================================================
 if show_details and detailed_data:
     st.header("📋 Registro Detalhado de Ataques (Últimos 500)")
